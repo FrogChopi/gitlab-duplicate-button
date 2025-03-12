@@ -7,8 +7,216 @@
 // @run-at       document-end
 // @author       FrogChopi
 // @version      1
+// @run-at       document-idle
 // @downloadURL  https://github.com/FrogChopi/gitlab-duplicate-button/blob/main/gitlab-duplicate-button.js
 // ==/UserScript==
 
+(async function() {
+    'use strict';
 
-document.querySelectorAll('a[data-testid="edit-pipeline-schedule-btn"]').forEach((t=>{let e=t.href.match(/(\d+)$/)[1],n={operationName:"getPipelineSchedulesQuery",variables:{ids:[e],prevPageCursor:"",nextPageCursor:"",projectPath:window.location.pathname.match(/^(.+)\/-\/pipeline_schedules/)[1]},query:'query getPipelineSchedulesQuery($projectPath: ID!, $status: PipelineScheduleStatus, $ids: [ID!] = null, $sortValue: PipelineScheduleSort, $first: Int, $last: Int, $prevPageCursor: String = "", $nextPageCursor: String = "") {\n  currentUser {\n    id\n    username\n    __typename\n  }\n  project(fullPath: $projectPath) {\n    id\n    projectPlanLimits {\n      ciPipelineSchedules\n      __typename\n    }\n    pipelineSchedules(\n      status: $status\n      ids: $ids\n      sort: $sortValue\n      first: $first\n      last: $last\n      after: $nextPageCursor\n      before: $prevPageCursor\n    ) {\n      count\n      nodes {\n        id\n        description\n        cron\n        cronTimezone\n        ref\n        forTag\n        editPath\n        refPath\n        refForDisplay\n        lastPipeline {\n          id\n          detailedStatus {\n            id\n            group\n            icon\n            label\n            text\n            detailsPath\n            __typename\n          }\n          __typename\n        }\n        active\n        nextRunAt\n        realNextRun\n        owner {\n          id\n          username\n          avatarUrl\n          name\n          webPath\n          __typename\n        }\n        variables {\n          nodes {\n            id\n            variableType\n            key\n            value\n            __typename\n          }\n          __typename\n        }\n        userPermissions {\n          playPipelineSchedule\n          updatePipelineSchedule\n          adminPipelineSchedule\n          __typename\n        }\n        __typename\n      }\n      pageInfo {\n        ...PageInfo\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment PageInfo on PageInfo {\n  hasNextPage\n  hasPreviousPage\n  startCursor\n  endCursor\n  __typename\n}\n'};var a=document.createElement("BUTTON"),l=document.createElement("IMG");a.className="btn btn-default btn-md gl-button btn-icon",l.className="gl-button-icon gl-icon s16 gl-fill-current",l.src="https://cdn-icons-png.flaticon.com/512/1621/1621635.png",a.appendChild(l),a.id=e,a.title="Duplicate scheduled pipeline",a.ariaLabel="Duplicate scheduled pipeline",a.onclick=async()=>{let t=await async function(t){return new Promise(((n,a)=>{let l=document.location.host;JSON.stringify(t),fetch(`https://${l}/api/v4/projects/${+document.body.getAttribute("data-project-id")}/pipeline_schedules/${e}`,{method:"GET",credentials:"include",headers:{Accept:"application/json"}}).then((t=>{if(!t.ok)throw new Error(`HTTP error! status: ${t.status}`);return t.json()})).then((t=>{console.log("Succès:",t),n(t)})).catch((t=>{console.error("Erreur:",t),a(t)}))}))}(n),a=document.createElement("DIV");a.innerHTML=`\n\t\t\t<div id="delete-pipeline-schedule-modal___BV_modal_outer_" style="position: absolute; z-index: 1040;">\n\t\t\t\t<div id="delete-pipeline-schedule-modal" role="dialog" aria-label="Delete scheduled pipeline" aria-describedby="delete-pipeline-schedule-modal___BV_modal_body_" class="modal fade show gl-block gl-modal" aria-modal="true" style="">\n\t\t\t\t\t<div class="modal-dialog modal-sm">\n\t\t\t\t\t\t<span tabindex="0"></span>\n\t\t\t\t\t\t<div id="delete-pipeline-schedule-modal___BV_modal_content_" tabindex="-1" class="modal-content">\n\t\t\t\t\t\t\t<header id="delete-pipeline-schedule-modal___BV_modal_header_" class="modal-header">\n\t\t\t\t\t\t\t\t<h2 class="modal-title">Delete scheduled pipeline</h2> \n\t\t\t\t\t\t\t\t<button aria-label="Close" type="button" class="btn btn-default btn-sm gl-button btn-default-tertiary btn-icon">\n\t\t\t\t\t\t\t\t\t\x3c!----\x3e\n\t\t\t\t\t\t\t\t\t<svg data-testid="close-icon" role="img" aria-hidden="true" class="gl-button-icon gl-icon s16 gl-fill-current">\n\t\t\t\t\t\t\t\t\t\t<use href="/assets/icons-8791a66659d025e0a4c801978c79a1fbd82db1d27d85f044a35728ea7cf0ae80.svg#close"></use>\n\t\t\t\t\t\t\t\t\t</svg>  \n\t\t\t\t\t\t\t\t\t\x3c!----\x3e\n\t\t\t\t\t\t\t\t</button>\n\t\t\t\t\t\t\t</header>\n\t\t\t\t\t\t\t<div id="delete-pipeline-schedule-modal___BV_modal_body_" class="modal-body">\n\t\t\t\t\t\t\t\t\x3c!----\x3e\n\t\t\t\t\t\t\t\t<h5>New schedule name</h5>\n\t\t\t\t\t\t\t\t<div class="input-group mb-3">\n\t\t\t\t\t\t\t\t\t<div class="input-group-prepend">\n\t\t\t\t\t\t\t\t\t\t<span class="input-group-text" id="basic-addon1">@</span>\n\t\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t\t<input type="text" class="form-control" placeholder="New schedule name" aria-label="New schedule name" aria-describedby="basic-addon1" value="${t.description}">\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t\x3c!----\x3e\n\t\t\t\t\t\t\t\t<h6>Are you sure you want to duplicate this scheduled pipeline?</h6>\n\t\t\t\t\t\t\t\t\x3c!----\x3e\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t<footer id="delete-pipeline-schedule-modal___BV_modal_footer_" class="modal-footer">\n\t\t\t\t\t\t\t\t<button aria-label="Cancel" type="button" class="btn js-modal-action-cancel btn-default btn-md gl-button">\n\t\t\t\t\t\t\t\t\t\x3c!----\x3e\n\t\t\t\t\t\t\t\t\t\x3c!----\x3e \n\t\t\t\t\t\t\t\t\t<span class="gl-button-text">\n        \t\t\t\t\t\t\t\tCancel\n      \t\t\t\t\t\t\t\t</span>\n\t\t\t\t\t\t\t\t</button> \n\t\t\t\t\t\t\t\t\x3c!----\x3e \n\t\t\t\t\t\t\t\t<button aria-label="Duplicate" type="button" class="btn js-modal-action-primary btn-warning btn-md gl-button">\n\t\t\t\t\t\t\t\t\t\x3c!----\x3e \n\t\t\t\t\t\t\t\t\t\x3c!----\x3e\n\t\t\t\t\t\t\t\t\t<span class="gl-button-text">\n\t\t\t\t\t\t\t\t\t\tDuplicate scheduled pipeline\n\t\t\t\t\t\t\t\t\t</span>\n\t\t\t\t\t\t\t\t</button>\n\t\t\t\t\t\t\t</footer>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<span tabindex="0"></span>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t\t<div id="delete-pipeline-schedule-modal___BV_modal_backdrop_" class="modal-backdrop"></div>\n\t\t\t</div>\n\t\t`,a.querySelector('button[aria-label="Close"]').onclick=()=>a.remove(),a.querySelector('button[aria-label="Cancel"]').onclick=()=>a.remove(),a.querySelector('button[aria-label="Duplicate"]').onclick=async()=>{a.querySelector('input[aria-label="New schedule name"]').value==t.description?alert("The new schedule name can't be the same !"):(await async function(t,e,n,a){return new Promise(((l,i)=>{const o=`/api/v4/projects/${document.body.getAttribute("data-project-id")}/pipeline_schedules`,d={description:t,ref:e,cron:n,cron_timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,active:!1,variables:a};return fetch(o,{method:"POST",headers:{"Content-Type":"application/json","X-CSRF-Token":document.querySelector('meta[name="csrf-token"]').content},credentials:"same-origin",body:JSON.stringify(d)}).then((t=>{l(t)})).catch((t=>{i(t)}))}))}(a.querySelector('input[aria-label="New schedule name"]').value,t.ref,t.cron,t.variables),window.location.reload())},document.body.appendChild(a)},t.parentNode.insertBefore(a,t.parentNode.lastChild)}));
+     function waitForElement(selector) {
+        return new Promise(resolve => {
+            if (document.querySelector(selector)) {
+                return resolve(document.querySelector(selector));
+            }
+
+            const observer = new MutationObserver(mutations => {
+                if (document.querySelector(selector)) {
+                    resolve(document.querySelector(selector));
+                    observer.disconnect();
+                }
+            });
+
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+        });
+    }
+
+    await waitForElement('a[data-testid="edit-pipeline-schedule-btn"]')
+
+    document.querySelectorAll('a[data-testid="edit-pipeline-schedule-btn"]').forEach( el => {
+        let req = async function ( payload ) { return new Promise ( ( resolve, reject ) => {
+            let host = document.location.host
+            let options = {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload), // Convertit l'objet JavaScript en chaîne JSON
+                credentials: 'include'
+            };
+
+            fetch(`https://${host}/api/v4/projects/${+document.body.getAttribute("data-project-id")}/pipeline_schedules/${id}`, {
+                method: 'GET',
+                credentials: 'include', // Inclut les cookies pour l'authentification
+                headers: {
+                    'Accept': 'application/json',
+                }
+            }).then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json(); // Parse la réponse JSON
+            })
+                .then(data => {
+                console.log('Succès:', data);
+                resolve(data)
+            })
+                .catch(error => {
+                console.error('Erreur:', error);
+                reject(error)
+            });
+        });
+                                             }
+
+        let createPipelineSchedule = async function (description, ref, cron, variables) { return new Promise ( ( resolve, reject ) => {
+            const projectId = document.body.getAttribute("data-project-id");
+            const url = `/api/v4/projects/${ projectId }/pipeline_schedules`;
+
+            const data = {
+                description: description,
+                ref: ref,
+                cron: cron,
+                cron_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                active: false,
+                variables: variables
+            };
+
+            return fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify(data)
+            })
+                .then(response => {
+                //console.log(response);
+                resolve(response);
+            })
+                .catch(e => {
+                //console.log(e);
+                reject(e)
+            });
+        })};
+
+        let id = el.href.match(/(\d+)$/)[1]
+        //console.log(id)
+
+        let payload = {
+            "operationName":"getPipelineSchedulesQuery",
+            "variables": {
+                "ids": [ id ],
+                "prevPageCursor":"",
+                "nextPageCursor":"",
+                "projectPath": window.location.pathname.match(/^(.+)\/-\/pipeline_schedules/)[1]
+            },
+            "query":"query getPipelineSchedulesQuery($projectPath: ID!, $status: PipelineScheduleStatus, $ids: [ID!] = null, $sortValue: PipelineScheduleSort, $first: Int, $last: Int, $prevPageCursor: String = \"\", $nextPageCursor: String = \"\") {\n  currentUser {\n    id\n    username\n    __typename\n  }\n  project(fullPath: $projectPath) {\n    id\n    projectPlanLimits {\n      ciPipelineSchedules\n      __typename\n    }\n    pipelineSchedules(\n      status: $status\n      ids: $ids\n      sort: $sortValue\n      first: $first\n      last: $last\n      after: $nextPageCursor\n      before: $prevPageCursor\n    ) {\n      count\n      nodes {\n        id\n        description\n        cron\n        cronTimezone\n        ref\n        forTag\n        editPath\n        refPath\n        refForDisplay\n        lastPipeline {\n          id\n          detailedStatus {\n            id\n            group\n            icon\n            label\n            text\n            detailsPath\n            __typename\n          }\n          __typename\n        }\n        active\n        nextRunAt\n        realNextRun\n        owner {\n          id\n          username\n          avatarUrl\n          name\n          webPath\n          __typename\n        }\n        variables {\n          nodes {\n            id\n            variableType\n            key\n            value\n            __typename\n          }\n          __typename\n        }\n        userPermissions {\n          playPipelineSchedule\n          updatePipelineSchedule\n          adminPipelineSchedule\n          __typename\n        }\n        __typename\n      }\n      pageInfo {\n        ...PageInfo\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment PageInfo on PageInfo {\n  hasNextPage\n  hasPreviousPage\n  startCursor\n  endCursor\n  __typename\n}\n"
+        }
+
+        //console.log(payload);
+
+        var btn = document.createElement('BUTTON')
+        var icn = document.createElement("IMG")
+
+        btn.className = "btn btn-default btn-md gl-button btn-icon"
+        icn.className = "gl-button-icon gl-icon s16 gl-fill-current"
+        icn.src = "https://cdn-icons-png.flaticon.com/512/1621/1621635.png"
+
+        btn.appendChild(icn)
+
+        btn.id = id
+        btn.title = "Duplicate scheduled pipeline"
+        btn.ariaLabel = "Duplicate scheduled pipeline"
+
+        //console.log(el.parentNode.childNodes);
+
+        btn.onclick = async () => {
+            let data = await req(payload);
+
+            //console.log(data)
+
+            let modal = document.createElement('DIV')
+            modal.innerHTML = `
+                  <div id="delete-pipeline-schedule-modal___BV_modal_outer_" style="position: absolute; z-index: 1040;">
+                        <div id="delete-pipeline-schedule-modal" role="dialog" aria-label="Delete scheduled pipeline" aria-describedby="delete-pipeline-schedule-modal___BV_modal_body_" class="modal fade show gl-block gl-modal" aria-modal="true" style="">
+                              <div class="modal-dialog modal-sm">
+                                    <span tabindex="0"></span>
+                                    <div id="delete-pipeline-schedule-modal___BV_modal_content_" tabindex="-1" class="modal-content">
+                                          <header id="delete-pipeline-schedule-modal___BV_modal_header_" class="modal-header">
+                                                <h2 class="modal-title">Delete scheduled pipeline</h2>
+                                                <button aria-label="Close" type="button" class="btn btn-default btn-sm gl-button btn-default-tertiary btn-icon">
+                                                      <!---->
+                                                      <svg data-testid="close-icon" role="img" aria-hidden="true" class="gl-button-icon gl-icon s16 gl-fill-current">
+                                                            <use href="/assets/icons-8791a66659d025e0a4c801978c79a1fbd82db1d27d85f044a35728ea7cf0ae80.svg#close"></use>
+                                                      </svg>
+                                                      <!---->
+                                                </button>
+                                          </header>
+                                          <div id="delete-pipeline-schedule-modal___BV_modal_body_" class="modal-body">
+                                                <!---->
+                                                <h5>New schedule name</h5>
+                                                <div class="input-group mb-3">
+                                                      <div class="input-group-prepend">
+                                                            <span class="input-group-text" id="basic-addon1">@</span>
+                                                      </div>
+                                                      <input type="text" class="form-control" placeholder="New schedule name" aria-label="New schedule name" aria-describedby="basic-addon1" value="${ data.description }">
+                                                </div>
+                                                <!---->
+                                                <h6>Are you sure you want to duplicate this scheduled pipeline?</h6>
+                                                <!---->
+                                          </div>
+                                          <footer id="delete-pipeline-schedule-modal___BV_modal_footer_" class="modal-footer">
+                                                <button aria-label="Cancel" type="button" class="btn js-modal-action-cancel btn-default btn-md gl-button">
+                                                      <!---->
+                                                      <!---->
+                                                      <span class="gl-button-text">
+                                                      Cancel
+                                                      </span>
+                                                </button>
+                                                <!---->
+                                                <button aria-label="Duplicate" type="button" class="btn js-modal-action-primary btn-warning btn-md gl-button">
+                                                      <!---->
+                                                      <!---->
+                                                      <span class="gl-button-text">
+                                                            Duplicate scheduled pipeline
+                                                      </span>
+                                                </button>
+                                          </footer>
+                                    </div>
+                                    <span tabindex="0"></span>
+                              </div>
+                        </div>
+                        <div id="delete-pipeline-schedule-modal___BV_modal_backdrop_" class="modal-backdrop"></div>
+                  </div>
+            `
+
+            modal.querySelector('button[aria-label="Close"]').onclick = () => modal.remove()
+            modal.querySelector('button[aria-label="Cancel"]').onclick = () => modal.remove()
+
+            modal.querySelector('button[aria-label="Duplicate"]').onclick = async () => {
+                if ( modal.querySelector('input[aria-label="New schedule name"]').value == data.description ) {
+                    alert("The new schedule name can't be the same !")
+                } else {
+                    await createPipelineSchedule (
+                        modal.querySelector('input[aria-label="New schedule name"]').value,
+                        data.ref,
+                        data.cron,
+                        data.variables
+                    )
+
+                    window.location.reload()
+                }
+            }
+
+            document.body.appendChild(modal)
+            //console.log(modal);
+
+        }
+
+        el.parentNode.insertBefore(btn, el.parentNode.lastChild)
+    })
+})()
