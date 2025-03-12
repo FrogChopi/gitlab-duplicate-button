@@ -3,7 +3,6 @@
 // @description  a simply tool to rapidly duplicate pipeline schedule
 // @match        https://gitlab.com/*/pipeline_schedules*
 // @match        https://*.gitlab.com/*/pipeline_schedules*
-// @match        https://gitlab.*/*/pipeline_schedules*
 // @grant        GM_log
 // @run-at       document-end
 // @author       FrogChopi
