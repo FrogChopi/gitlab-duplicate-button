@@ -4,39 +4,103 @@
 // @match        https://gitlab.com/*/pipeline_schedules*
 // @match        https://*.gitlab.com/*/pipeline_schedules*
 // @grant        GM_log
-// @run-at       document-end
 // @author       FrogChopi
 // @version      1
-// @run-at       document-idle
+// @run-at       document-end
 // @downloadURL  https://github.com/FrogChopi/gitlab-duplicate-button/blob/main/gitlab-duplicate-button.js
 // ==/UserScript==
 
 (async function() {
     'use strict';
 
-     function waitForElement(selector) {
-        return new Promise(resolve => {
-            if (document.querySelector(selector)) {
-                return resolve(document.querySelector(selector));
-            }
+    let style = document.createElement("style")
+    style.innerText = `
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1050;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            outline: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-            const observer = new MutationObserver(mutations => {
-                if (document.querySelector(selector)) {
-                    resolve(document.querySelector(selector));
-                    observer.disconnect();
-                }
-            });
+        .modal-dialog {
+            position: relative;
+            width: auto;
+            margin: 0.5rem;
+            pointer-events: none;
+            max-width: 500px;
+        }
 
-            observer.observe(document.body, {
-                childList: true,
-                subtree: true
-            });
-        });
-    }
+        .modal-content {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            pointer-events: auto;
+            background-color: #fff;
+            background-clip: padding-box;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            border-radius: 0.3rem;
+            outline: 0;
+        }
 
-    await waitForElement('a[data-testid="edit-pipeline-schedule-btn"]')
+        .modal-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            padding: 1rem;
+            border-bottom: 1px solid #dee2e6;
+            border-top-left-radius: 0.3rem;
+            border-top-right-radius: 0.3rem;
+        }
 
-    document.querySelectorAll('a[data-testid="edit-pipeline-schedule-btn"]').forEach( el => {
+        .modal-title {
+            margin-bottom: 0;
+            line-height: 1.5;
+            font-size: 1.25rem;
+        }
+
+        .close {
+            float: right;
+            font-size: 1.5rem;
+            font-weight: 700;
+            line-height: 1;
+            color: #000;
+            text-shadow: 0 1px 0 #fff;
+            opacity: .5;
+            padding: 1rem;
+            margin: -1rem -1rem -1rem auto;
+            background-color: transparent;
+            border: 0;
+        }
+
+        .modal-body {
+            position: relative;
+            flex: 1 1 auto;
+            padding: 1rem;
+        }
+
+        .modal-footer {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 0.75rem;
+            border-top: 1px solid #dee2e6;
+            border-bottom-right-radius: 0.3rem;
+            border-bottom-left-radius: 0.3rem;
+        }
+    `
+    document.head.appendChild(style)
+
+    let load = () => document.querySelectorAll('a[data-testid="edit-pipeline-schedule-btn"]').forEach( el => {
         let req = async function ( payload ) { return new Promise ( ( resolve, reject ) => {
             let host = document.location.host
             let options = {
@@ -134,6 +198,7 @@
 
         //console.log(el.parentNode.childNodes);
 
+
         btn.onclick = async () => {
             let data = await req(payload);
 
@@ -141,57 +206,32 @@
 
             let modal = document.createElement('DIV')
             modal.innerHTML = `
-                  <div id="delete-pipeline-schedule-modal___BV_modal_outer_" style="position: absolute; z-index: 1040;">
-                        <div id="delete-pipeline-schedule-modal" role="dialog" aria-label="Delete scheduled pipeline" aria-describedby="delete-pipeline-schedule-modal___BV_modal_body_" class="modal fade show gl-block gl-modal" aria-modal="true" style="">
-                              <div class="modal-dialog modal-sm">
-                                    <span tabindex="0"></span>
-                                    <div id="delete-pipeline-schedule-modal___BV_modal_content_" tabindex="-1" class="modal-content">
-                                          <header id="delete-pipeline-schedule-modal___BV_modal_header_" class="modal-header">
-                                                <h2 class="modal-title">Delete scheduled pipeline</h2>
-                                                <button aria-label="Close" type="button" class="btn btn-default btn-sm gl-button btn-default-tertiary btn-icon">
-                                                      <!---->
-                                                      <svg data-testid="close-icon" role="img" aria-hidden="true" class="gl-button-icon gl-icon s16 gl-fill-current">
-                                                            <use href="/assets/icons-8791a66659d025e0a4c801978c79a1fbd82db1d27d85f044a35728ea7cf0ae80.svg#close"></use>
-                                                      </svg>
-                                                      <!---->
-                                                </button>
-                                          </header>
-                                          <div id="delete-pipeline-schedule-modal___BV_modal_body_" class="modal-body">
-                                                <!---->
-                                                <h5>New schedule name</h5>
-                                                <div class="input-group mb-3">
-                                                      <div class="input-group-prepend">
-                                                            <span class="input-group-text" id="basic-addon1">@</span>
-                                                      </div>
-                                                      <input type="text" class="form-control" placeholder="New schedule name" aria-label="New schedule name" aria-describedby="basic-addon1" value="${ data.description }">
-                                                </div>
-                                                <!---->
-                                                <h6>Are you sure you want to duplicate this scheduled pipeline?</h6>
-                                                <!---->
-                                          </div>
-                                          <footer id="delete-pipeline-schedule-modal___BV_modal_footer_" class="modal-footer">
-                                                <button aria-label="Cancel" type="button" class="btn js-modal-action-cancel btn-default btn-md gl-button">
-                                                      <!---->
-                                                      <!---->
-                                                      <span class="gl-button-text">
-                                                      Cancel
-                                                      </span>
-                                                </button>
-                                                <!---->
-                                                <button aria-label="Duplicate" type="button" class="btn js-modal-action-primary btn-warning btn-md gl-button">
-                                                      <!---->
-                                                      <!---->
-                                                      <span class="gl-button-text">
-                                                            Duplicate scheduled pipeline
-                                                      </span>
-                                                </button>
-                                          </footer>
-                                    </div>
-                                    <span tabindex="0"></span>
-                              </div>
-                        </div>
-                        <div id="delete-pipeline-schedule-modal___BV_modal_backdrop_" class="modal-backdrop"></div>
-                  </div>
+                  <div class="modal" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Modal title</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <h5>New schedule name</h5>
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text" id="basic-addon1">@</span>
+                        </div>
+                        <input type="text" class="form-control" placeholder="New schedule name" aria-label="New schedule name" value="${ data.description }" aria-describedby="basic-addon1">
+                    </div>
+                    <h6>Are you sure you want to duplicate this scheduled pipeline?</h6>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" aria-label="Duplicate" class="btn btn-primary">Duplicate scheduled pipeline</button>
+                    <button type="button" aria-label="Cancel" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                </div>
+                </div>
+            </div>
+            </div>
             `
 
             modal.querySelector('button[aria-label="Close"]').onclick = () => modal.remove()
@@ -219,4 +259,24 @@
 
         el.parentNode.insertBefore(btn, el.parentNode.lastChild)
     })
+
+    function waitForElement(selector) {
+        return new Promise(resolve => {
+            const observer = new MutationObserver(mutations => {
+                if (document.querySelector(selector) && typeof $ == 'function') {
+                        load();
+                        resolve(document.querySelector(selector))
+                    observer.disconnect();
+                }
+            });
+
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+        });
+    }
+
+
+    await waitForElement('a[data-testid="edit-pipeline-schedule-btn"]')
 })()
