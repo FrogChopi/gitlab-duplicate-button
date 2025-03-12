@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         Gitlab Schedule Duplicator
+// @name         gitlab duplicate button
 // @description  a simply tool to rapidly duplicate pipeline schedule
 // @match        https://gitlab.com/*/pipeline_schedules*
 // @match        https://*.gitlab.com/*/pipeline_schedules*
