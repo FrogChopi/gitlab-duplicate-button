@@ -100,88 +100,29 @@
     `
     document.head.appendChild(style)
 
-    let load = () => document.querySelectorAll('a[data-testid="edit-pipeline-schedule-btn"]').forEach( el => {
-        let req = async function ( payload ) { return new Promise ( ( resolve, reject ) => {
-            let host = document.location.host
-            let options = {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload), // Convertit l'objet JavaScript en chaîne JSON
-                credentials: 'include'
-            };
-
-            fetch(`https://${host}/api/v4/projects/${+document.body.getAttribute("data-project-id")}/pipeline_schedules/${id}`, {
-                method: 'GET',
-                credentials: 'include', // Inclut les cookies pour l'authentification
-                headers: {
-                    'Accept': 'application/json',
-                }
-            }).then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json(); // Parse la réponse JSON
-            })
-                .then(data => {
-                console.log('Succès:', data);
-                resolve(data)
-            })
-                .catch(error => {
-                console.error('Erreur:', error);
-                reject(error)
-            });
-        });
-                                             }
-
-        let createPipelineSchedule = async function (description, ref, cron, variables) { return new Promise ( ( resolve, reject ) => {
-            const projectId = document.body.getAttribute("data-project-id");
-            const url = `/api/v4/projects/${ projectId }/pipeline_schedules`;
-
-            const data = {
-                description: description,
-                ref: ref,
-                cron: cron,
-                cron_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                active: false,
-                variables: variables
-            };
-
-            return fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
-                },
-                credentials: 'same-origin',
-                body: JSON.stringify(data)
-            })
-                .then(response => {
-                //console.log(response);
-                resolve(response);
-            })
-                .catch(e => {
-                //console.log(e);
-                reject(e)
-            });
-        })};
-
-        let id = el.href.match(/(\d+)$/)[1]
-        //console.log(id)
-
-        let payload = {
-            "operationName":"getPipelineSchedulesQuery",
-            "variables": {
-                "ids": [ id ],
-                "prevPageCursor":"",
-                "nextPageCursor":"",
-                "projectPath": window.location.pathname.match(/^(.+)\/-\/pipeline_schedules/)[1]
-            },
-            "query":"query getPipelineSchedulesQuery($projectPath: ID!, $status: PipelineScheduleStatus, $ids: [ID!] = null, $sortValue: PipelineScheduleSort, $first: Int, $last: Int, $prevPageCursor: String = \"\", $nextPageCursor: String = \"\") {\n  currentUser {\n    id\n    username\n    __typename\n  }\n  project(fullPath: $projectPath) {\n    id\n    projectPlanLimits {\n      ciPipelineSchedules\n      __typename\n    }\n    pipelineSchedules(\n      status: $status\n      ids: $ids\n      sort: $sortValue\n      first: $first\n      last: $last\n      after: $nextPageCursor\n      before: $prevPageCursor\n    ) {\n      count\n      nodes {\n        id\n        description\n        cron\n        cronTimezone\n        ref\n        forTag\n        editPath\n        refPath\n        refForDisplay\n        lastPipeline {\n          id\n          detailedStatus {\n            id\n            group\n            icon\n            label\n            text\n            detailsPath\n            __typename\n          }\n          __typename\n        }\n        active\n        nextRunAt\n        realNextRun\n        owner {\n          id\n          username\n          avatarUrl\n          name\n          webPath\n          __typename\n        }\n        variables {\n          nodes {\n            id\n            variableType\n            key\n            value\n            __typename\n          }\n          __typename\n        }\n        userPermissions {\n          playPipelineSchedule\n          updatePipelineSchedule\n          adminPipelineSchedule\n          __typename\n        }\n        __typename\n      }\n      pageInfo {\n        ...PageInfo\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment PageInfo on PageInfo {\n  hasNextPage\n  hasPreviousPage\n  startCursor\n  endCursor\n  __typename\n}\n"
+    let auth_req = async function ( method, host, path, headers, payload ) { return new Promise ( ( resolve, reject ) => {    
+        let options = {
+            method: method,
+            headers: headers,
+            credentials: 'same-origin'
         }
 
-        //console.log(payload);
+        if ( payload )
+            options.body = JSON.stringify(payload)
+
+        // console.log(`https://${host}${path}`)
+        // console.log(options);
+
+        fetch(`https://${host}${path}`, options)
+            .then(response => response.json() )
+            .then(data => { resolve(data) })
+            .catch(error => reject(error));
+    }); }
+   
+
+    let load = () => document.querySelectorAll('a[data-testid="edit-pipeline-schedule-btn"]').forEach( el => {
+
+        let id = el.href.match(/(\d+)$/)[1]
 
         var btn = document.createElement('BUTTON')
         var icn = document.createElement("IMG")
@@ -196,13 +137,14 @@
         btn.title = "Duplicate scheduled pipeline"
         btn.ariaLabel = "Duplicate scheduled pipeline"
 
-        //console.log(el.parentNode.childNodes);
-
-
         btn.onclick = async () => {
-            let data = await req(payload);
-
-            //console.log(data)
+            let data = await auth_req(
+                "GET",
+                document.location.host,
+                `/api/v4/projects/${+document.body.getAttribute("data-project-id")}/pipeline_schedules/${id}`,
+                { 'Content-Type': 'application/json' },
+                undefined
+            )
 
             let modal = document.createElement('DIV')
             modal.innerHTML = `
@@ -241,14 +183,43 @@
                 if ( modal.querySelector('input[aria-label="New schedule name"]').value == data.description ) {
                     alert("The new schedule name can't be the same !")
                 } else {
-                    await createPipelineSchedule (
-                        modal.querySelector('input[aria-label="New schedule name"]').value,
-                        data.ref,
-                        data.cron,
-                        data.variables
-                    )
+                    // console.log(data);
+                   
+                    let payload = {
+                        description: modal.querySelector('input[aria-label="New schedule name"]').value,
+                        ref: data.ref,
+                        cron: data.cron,
+                        cron_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                        active: false,
+                        variables: data.variables
+                    }
 
-                    window.location.reload()
+                    let new_id = (
+                     await auth_req(
+                        "POST",
+                        document.location.host,
+                        `/api/v4/projects/${ document.body.getAttribute("data-project-id") }/pipeline_schedules`,
+                        {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        payload
+                    ) ).id
+
+                    for ( let i = 0 ; i < data.variables.length ; i++ ) {
+                        auth_req(
+                            "POST",
+                            document.location.host,
+                            `/api/v4/projects/${ document.body.getAttribute("data-project-id") }/pipeline_schedules/${ new_id }/variables`,
+                            {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+                            },
+                            data.variables[i]
+                        )
+                    }
+
+                    window.location.replace(`${ window.location.origin }${ window.location.pathname }/${ new_id }/edit?id=${ new_id }`)
                 }
             }
 
@@ -276,7 +247,6 @@
             });
         });
     }
-
 
     await waitForElement('a[data-testid="edit-pipeline-schedule-btn"]')
 })()
